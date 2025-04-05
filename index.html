@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Website Chatbot Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #chatBox {
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user {
+            text-align: right;
+            color: #444;
+        }
+
+        .bot {
+            text-align: left;
+            color: #007bff;
+        }
+
+        #embedCode {
+            display: none;
+            background: #e7f3ff;
+            padding: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #007bff;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <h2>Website Chatbot Generator</h2>
+
+        <input type="text" id="urlInput" placeholder="Enter website URL (e.g., https://example.com)">
+        <button onclick="createBot()">Create Bot</button>
+
+        <div id="embedCode"></div>
+
+        <hr style="margin: 30px 0;">
+
+        <div id="chatBox"></div>
+        <input type="text" id="userInput" placeholder="Ask your question">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let currentSite = "";
+
+        function appendMessage(content, sender) {
+            const chatBox = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = sender;
+            div.textContent = `${sender === 'user' ? 'You' : 'Bot'}: ${content}`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const question = userInput.value;
+            if (!question || !currentSite) return alert("Please enter a question and create a bot first!");
+
+            appendMessage(question, 'user');
+            userInput.value = '';
+
+            const formData = new FormData();
+            formData.append("action", "chat");
+            formData.append("question", question);
+            formData.append("url", currentSite);
+
+            fetch("backend.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(res => res.text())
+                .then(response => {
+                    appendMessage(response, 'bot');
+                })
+                .catch(error => {
+                    console.error(error);
+                    appendMessage("⚠️ Error talking to backend.", 'bot');
+                });
+        }
+
+        function createBot() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) return alert("Please enter a website URL!");
+
+            currentSite = url;
+            const embedCode = `<iframe src="index.html?url=${encodeURIComponent(url)}" width="100%" height="400" frameborder="0"></iframe>`;
+
+            document.getElementById('embedCode').style.display = 'block';
+            document.getElementById('embedCode').innerText = `Embed Code:\n${embedCode}`;
+            alert("✅ Bot created successfully. You can now use the chat below or embed it anywhere.");
+        }
+    </script>
+</body>
+
+</html>
