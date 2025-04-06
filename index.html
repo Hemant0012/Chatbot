@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>Website Chatbot Generator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -117,18 +116,19 @@
             appendMessage(question, 'user');
             userInput.value = '';
 
-            const formData = new FormData();
-            formData.append("action", "chat");
-            formData.append("question", question);
-            formData.append("url", currentSite);
-
-            fetch("backend.php", {
+            fetch("https://chatbot-integration.up.railway.app/chat", {
                 method: "POST",
-                body: formData
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    question: question,
+                    url: currentSite
+                })
             })
-                .then(res => res.text())
-                .then(response => {
-                    appendMessage(response, 'bot');
+                .then(res => res.json())
+                .then(data => {
+                    appendMessage(data.answer || "⚠️ No response", 'bot');
                 })
                 .catch(error => {
                     console.error(error);
@@ -146,6 +146,15 @@
             document.getElementById('embedCode').style.display = 'block';
             document.getElementById('embedCode').innerText = `Embed Code:\n${embedCode}`;
             alert("✅ Bot created successfully. You can now use the chat below or embed it anywhere.");
+        }
+
+        // Auto-load URL from query param if inside iframe
+        window.onload = () => {
+            const urlParam = new URLSearchParams(window.location.search).get("url");
+            if (urlParam) {
+                currentSite = urlParam;
+                document.getElementById("urlInput").value = urlParam;
+            }
         }
     </script>
 </body>
