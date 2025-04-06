@@ -38,13 +38,11 @@ async def chat(req: ChatRequest):
         website_response = requests.get(req.url, timeout=10)
         soup = BeautifulSoup(website_response.text, "html.parser")
 
-        # Remove unwanted tags
         for tag in soup(["script", "style", "noscript", "img", "footer", "header", "nav"]):
             tag.decompose()
 
-        # Get readable text
         website_content = soup.get_text(separator="\n", strip=True)
-        website_content = "\n".join([line for line in website_content.splitlines() if len(line.strip()) > 30])  # Filter short lines
+        website_content = "\n".join([line for line in website_content.splitlines() if len(line.strip()) > 30])
 
         prompt = f"Website Content:\n{website_content[:10000]}\n\nQuestion:\n{req.question}"
 
@@ -78,3 +76,8 @@ async def chat(req: ChatRequest):
             status_code=500,
             content={"answer": f"⚠️ Backend Error: {str(e)}"}
         )
+
+# 👇 This makes sure the server runs when deploying with Railway
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
